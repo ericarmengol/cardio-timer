@@ -2,69 +2,108 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { crearVoz } from '../js/voice.js';
 
-class FalsoUtterance {
-  constructor(text) { this.text = text; }
-}
-
-function falsoSynth(voces) {
-  return {
-    dichos: [],
-    cancelaciones: 0,
-    getVoices: () => voces,
-    addEventListener() {},
-    speak(u) { this.dichos.push(u); },
-    cancel() { this.cancelaciones++; },
+function falsoContexto() {
+  const ctx = {
+    currentTime: 10,
+    destination: {},
+    iniciados: [],
+    detenidos: 0,
+    reanudado: 0,
+    resume() { this.reanudado++; return Promise.resolve(); },
+    createBuffer: () => ({ id: 'vacio', duration: 0 }),
+    createBufferSource() {
+      const src = {
+        connect() {},
+        start: (at) => { if (src.buffer.id !== 'vacio') ctx.iniciados.push([src.buffer.id, Number(at.toFixed(2))]); },
+        stop: () => { ctx.detenidos++; },
+      };
+      return src;
+    },
   };
+  return ctx;
 }
 
-test('prefiere una voz es-ES', () => {
-  const synth = falsoSynth([{ lang: 'en-US' }, { lang: 'es-MX' }, { lang: 'es-ES', name: 'Mónica' }]);
-  const voz = crearVoz({ synth, Utterance: FalsoUtterance });
-  voz.decir('Zona 4, 20 segundos');
-  assert.equal(synth.dichos.length, 1);
-  assert.equal(synth.dichos[0].text, 'Zona 4, 20 segundos');
-  assert.equal(synth.dichos[0].voice.name, 'Mónica');
-  assert.equal(synth.dichos[0].lang, 'es-ES');
+const cargar = (ctx, id) => (id === 'roto' ? Promise.reject(new Error('404')) : Promise.resolve({ id, duration: 0.5 }));
+
+function crear(opciones = {}) {
+  const ctx = falsoContexto();
+  const voz = crearVoz({ crearContexto: () => ctx, cargar, pausaSeg: 0.2, ...opciones });
+  return { ctx, voz };
+}
+
+test('decir encadena los clips con pausas', async () => {
+  const { ctx, voz } = crear();
+  voz.desbloquear();
+  await voz.decir(['zona', 'n4', '_', 'n20', 'segundos']);
+  assert.deepEqual(ctx.iniciados, [['zona', 10.02], ['n4', 10.52], ['n20', 11.22], ['segundos', 11.72]]);
 });
 
-test('si no hay es-ES usa otra voz en español', () => {
-  const synth = falsoSynth([{ lang: 'en-US' }, { lang: 'es-MX', name: 'Paulina' }]);
-  crearVoz({ synth, Utterance: FalsoUtterance }).decir('hola');
-  assert.equal(synth.dichos[0].voice.name, 'Paulina');
+test('una frase nueva sustituye a la que aún estaba cargando', async () => {
+  const { ctx, voz } = crear();
+  voz.desbloquear();
+  const primera = voz.decir(['n1']);
+  await voz.decir(['n2']);
+  await primera;
+  assert.deepEqual(ctx.iniciados.map(([id]) => id), ['n2']);
 });
 
-test('sin voz española no asigna voz', () => {
-  const synth = falsoSynth([{ lang: 'en-US' }]);
-  crearVoz({ synth, Utterance: FalsoUtterance }).decir('hola');
-  assert.equal(synth.dichos[0].voice, undefined);
+test('una frase nueva corta la que estaba sonando', async () => {
+  const { ctx, voz } = crear();
+  voz.desbloquear();
+  await voz.decir(['n1', 'n2']);
+  await voz.decir(['n3']);
+  assert.equal(ctx.detenidos, 2);
 });
 
-test('decir interrumpe lo anterior', () => {
-  const synth = falsoSynth([]);
-  const voz = crearVoz({ synth, Utterance: FalsoUtterance });
-  voz.decir('a');
-  voz.decir('b');
-  assert.equal(synth.cancelaciones, 2);
-  assert.deepEqual(synth.dichos.map((u) => u.text), ['a', 'b']);
+test('un clip que no carga se salta', async () => {
+  const { ctx, voz } = crear();
+  voz.desbloquear();
+  await voz.decir(['roto', 'n3']);
+  assert.deepEqual(ctx.iniciados, [['n3', 10.02]]);
 });
 
-test('desactivada no habla y al desactivar se calla', () => {
-  const synth = falsoSynth([]);
-  const voz = crearVoz({ synth, Utterance: FalsoUtterance, activada: false });
-  voz.decir('a');
-  assert.equal(synth.dichos.length, 0);
+test('callar cancela lo pendiente', async () => {
+  const { ctx, voz } = crear();
+  voz.desbloquear();
+  const p = voz.decir(['n1']);
+  voz.callar();
+  await p;
+  assert.deepEqual(ctx.iniciados, []);
+});
+
+test('desactivada no suena y al desactivar se calla', async () => {
+  const { ctx, voz } = crear({ activada: false });
+  voz.desbloquear();
+  await voz.decir(['n1']);
+  assert.deepEqual(ctx.iniciados, []);
   voz.activada = true;
-  voz.decir('b');
+  await voz.decir(['n1']);
   voz.activada = false;
   assert.equal(voz.activada, false);
-  assert.equal(synth.dichos.length, 1);
-  assert.equal(synth.cancelaciones, 2);
+  assert.equal(ctx.detenidos, 1);
 });
 
-test('sin speechSynthesis no falla', () => {
-  const voz = crearVoz({ synth: null, Utterance: FalsoUtterance });
-  assert.equal(voz.disponible, false);
+test('sin desbloquear no suena', async () => {
+  const { ctx, voz } = crear();
+  await voz.decir(['n1']);
+  assert.deepEqual(ctx.iniciados, []);
+});
+
+test('desbloquear crea el contexto una sola vez y reactivar lo reanuda', () => {
+  let creados = 0;
+  const ctx = falsoContexto();
+  const voz = crearVoz({ crearContexto: () => { creados++; return ctx; }, cargar });
   voz.desbloquear();
-  voz.decir('a');
+  voz.desbloquear();
+  voz.reactivar();
+  assert.equal(creados, 1);
+  assert.equal(ctx.reanudado, 3);
+});
+
+test('sin Web Audio no falla', async () => {
+  const voz = crearVoz({ crearContexto: () => { throw new Error('no hay audio'); }, cargar });
+  voz.desbloquear();
+  await voz.decir(['n1']);
   voz.callar();
+  voz.reactivar();
 });

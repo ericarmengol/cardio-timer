@@ -1,7 +1,6 @@
 import { duracionTotal } from './workout.js';
 
 const dos = (n) => String(n).padStart(2, '0');
-const plural = (n, uno, varios) => `${n} ${n === 1 ? uno : varios}`;
 
 function partes(segundos) {
   return { h: Math.floor(segundos / 3600), m: Math.floor((segundos % 3600) / 60), s: segundos % 60 };
@@ -18,15 +17,6 @@ export function duracionCorta(segundos) {
   if (h) texto.push(`${h} h`);
   if (m) texto.push(`${m} min`);
   if (s || texto.length === 0) texto.push(`${s} s`);
-  return texto.join(' ');
-}
-
-export function duracionHablada(segundos) {
-  const { h, m, s } = partes(segundos);
-  const texto = [];
-  if (h) texto.push(plural(h, 'hora', 'horas'));
-  if (m) texto.push(plural(m, 'minuto', 'minutos'));
-  if (s || texto.length === 0) texto.push(plural(s, 'segundo', 'segundos'));
   return texto.join(' ');
 }
 
@@ -51,25 +41,8 @@ export function textoIntensidadCorta(it) {
   return it.tipo === 'zona' ? `Z${it.valor}` : `${it.valor} %`;
 }
 
-function intensidadHablada(it) {
-  return it.tipo === 'zona' ? `zona ${it.valor}` : `${it.valor} por ciento`;
-}
-
 export function textoPrincipal(fase) {
   return fase.tipo === 'descanso' ? 'DESCANSO' : textoIntensidad(fase.intensidad);
-}
-
-export function fraseFase(fase) {
-  const duracion = duracionHablada(fase.segundos);
-  switch (fase.tipo) {
-    case 'descanso': return `Descanso, ${duracion}`;
-    case 'calentamiento': return `Calentamiento, ${intensidadHablada(fase.intensidad)}, ${duracion}`;
-    case 'enfriamiento': return `Enfriamiento, ${intensidadHablada(fase.intensidad)}, ${duracion}`;
-    default: {
-      const texto = intensidadHablada(fase.intensidad);
-      return `${texto[0].toUpperCase()}${texto.slice(1)}, ${duracion}`;
-    }
-  }
 }
 
 export function textoProgreso(fase, entreno) {

@@ -1,14 +1,17 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { existsSync, readFileSync, readdirSync } from 'node:fs';
+import { CLIPS } from '../js/frases.js';
 
 const leer = (ruta) => readFileSync(new URL(`../${ruta}`, import.meta.url), 'utf8');
 
-function archivosCacheados() {
-  const coincidencia = leer('sw.js').match(/const ARCHIVOS = (\[[\s\S]*?\]);/);
-  assert.ok(coincidencia, 'sw.js debe declarar const ARCHIVOS = [...]');
+function lista(nombre) {
+  const coincidencia = leer('sw.js').match(new RegExp(`const ${nombre} = (\\[[\\s\\S]*?\\]);`));
+  assert.ok(coincidencia, `sw.js debe declarar const ${nombre} = [...]`);
   return JSON.parse(coincidencia[1].replace(/'/g, '"'));
 }
+
+const archivosCacheados = () => [...lista('ARCHIVOS'), ...lista('AUDIO')];
 
 test('todos los archivos cacheados existen', () => {
   for (const ruta of archivosCacheados().filter((r) => r !== './')) {
@@ -33,5 +36,17 @@ test('el manifest apunta a iconos existentes', () => {
 });
 
 test('la instalación descarga los archivos saltándose la caché HTTP', () => {
-  assert.match(leer('sw.js'), /addAll\(ARCHIVOS\.map\(\(u\) => new Request\(u, \{ cache: 'reload' \}\)\)\)/);
+  assert.match(leer('sw.js'), /addAll\(\[\.\.\.ARCHIVOS, \.\.\.AUDIO\]\.map\(\(u\) => new Request\(u, \{ cache: 'reload' \}\)\)\)/);
+});
+
+test('cada clip de voz tiene su mp3 y está cacheado', () => {
+  const audio = lista('AUDIO');
+  for (const id of Object.keys(CLIPS)) {
+    assert.ok(audio.includes(`./audio/${id}.mp3`), `sw.js no cachea audio/${id}.mp3`);
+    assert.ok(existsSync(new URL(`../audio/${id}.mp3`, import.meta.url)), `falta audio/${id}.mp3`);
+  }
+});
+
+test('la instalación cachea también el audio', () => {
+  assert.match(leer('sw.js'), /[...ARCHIVOS, ...AUDIO]/);
 });

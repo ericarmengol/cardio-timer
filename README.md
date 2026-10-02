@@ -6,3 +6,4 @@ Temporizador de intervalos para cardio. PWA personal: https://ericarmengol.githu
 - Tests: `node --test`
 - Servidor local: `node tools/servir.mjs` → http://localhost:8080/
 - Al publicar cambios, subir `VERSION` en `sw.js` para que el iPhone descargue la nueva versión.
+- Voz: clips pregrabados en `audio/`. Si cambias `CLIPS` en `js/frases.js`, regenera con `node tools/generar-audio.mjs` (Windows + ffmpeg).

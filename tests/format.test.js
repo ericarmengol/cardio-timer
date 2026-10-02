@@ -1,8 +1,8 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import {
-  formatoReloj, duracionCorta, duracionHablada, zonaDeIntensidad, claseColor,
-  textoIntensidad, textoIntensidadCorta, textoPrincipal, fraseFase, textoProgreso,
+  formatoReloj, duracionCorta, zonaDeIntensidad, claseColor,
+  textoIntensidad, textoIntensidadCorta, textoPrincipal, textoProgreso,
   textoSiguiente, resumenEntreno, escaparHtml,
 } from '../js/format.js';
 
@@ -26,15 +26,6 @@ test('duracionCorta', () => {
   assert.equal(duracionCorta(3900), '1 h 5 min');
 });
 
-test('duracionHablada', () => {
-  assert.equal(duracionHablada(1), '1 segundo');
-  assert.equal(duracionHablada(20), '20 segundos');
-  assert.equal(duracionHablada(60), '1 minuto');
-  assert.equal(duracionHablada(90), '1 minuto 30 segundos');
-  assert.equal(duracionHablada(300), '5 minutos');
-  assert.equal(duracionHablada(3660), '1 hora 1 minuto');
-});
-
 test('zonaDeIntensidad mapea porcentajes por tramos', () => {
   assert.equal(zonaDeIntensidad(z(3)), 3);
   assert.deepEqual([1, 59, 60, 69, 70, 79, 80, 89, 90, 100].map((v) => zonaDeIntensidad(pct(v))), [1, 1, 2, 2, 3, 3, 4, 4, 5, 5]);
@@ -53,14 +44,6 @@ test('textos de intensidad', () => {
   assert.equal(textoIntensidadCorta(pct(75)), '75 %');
   assert.equal(textoPrincipal(iv(20, z(5))), 'ZONA 5');
   assert.equal(textoPrincipal({ tipo: 'descanso', segundos: 60, intensidad: null }), 'DESCANSO');
-});
-
-test('fraseFase', () => {
-  assert.equal(fraseFase(iv(20, z(4))), 'Zona 4, 20 segundos');
-  assert.equal(fraseFase(iv(30, pct(80))), '80 por ciento, 30 segundos');
-  assert.equal(fraseFase({ tipo: 'descanso', segundos: 60, intensidad: null }), 'Descanso, 1 minuto');
-  assert.equal(fraseFase({ tipo: 'calentamiento', segundos: 300, intensidad: z(2) }), 'Calentamiento, zona 2, 5 minutos');
-  assert.equal(fraseFase({ tipo: 'enfriamiento', segundos: 120, intensidad: z(1) }), 'Enfriamiento, zona 1, 2 minutos');
 });
 
 test('textoProgreso', () => {

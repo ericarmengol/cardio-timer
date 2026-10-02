@@ -1,6 +1,7 @@
 import { duracionTotal, generarFases } from './workout.js';
 import { Temporizador } from './timer.js';
-import { claseColor, formatoReloj, fraseFase, textoPrincipal, textoProgreso, textoSiguiente } from './format.js';
+import { claseColor, formatoReloj, textoPrincipal, textoProgreso, textoSiguiente } from './format.js';
+import { FRAGMENTOS_FIN, fragmentosCuenta, fragmentosFase } from './frases.js';
 
 export function montarEjecucion(raiz, { voz, onVozCambiada, onFin, sesion }) {
   const $ = (sel) => raiz.querySelector(sel);
@@ -99,6 +100,7 @@ export function montarEjecucion(raiz, { voz, onVozCambiada, onFin, sesion }) {
 
   document.addEventListener('visibilitychange', () => {
     if (document.visibilityState === 'visible' && temporizador) {
+      voz.reactivar();
       mantenerPantalla();
       temporizador.actualizar();
     }
@@ -114,14 +116,14 @@ export function montarEjecucion(raiz, { voz, onVozCambiada, onFin, sesion }) {
       temporizador = new Temporizador(fases, {
         onFase: (fase, i, segundos) => {
           pintarFase(i, segundos);
-          voz.decir(fraseFase(fase));
+          voz.decir(fragmentosFase(fase));
         },
         onSegundo: (segundos, i) => {
           el.tiempo.textContent = formatoReloj(segundos);
-          if (segundos <= 3 && fases[i].segundos > 5) voz.decir(String(segundos));
+          if (segundos <= 3 && fases[i].segundos > 5) voz.decir(fragmentosCuenta(segundos));
         },
         onFin: () => {
-          voz.decir('Entreno terminado');
+          voz.decir(FRAGMENTOS_FIN);
           acabar(true);
         },
       });
