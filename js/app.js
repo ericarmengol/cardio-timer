@@ -148,3 +148,5 @@ $('#input-importar').addEventListener('change', async (ev) => {
 
 renderLista();
 mostrar('lista');
+
+if ('serviceWorker' in navigator) navigator.serviceWorker.register('./sw.js');
