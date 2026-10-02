@@ -20,6 +20,8 @@
   <button id="b2"><b>2.</b> Como la app: desbloquear + cortar + hablar</button>
   <button id="b3"><b>3.</b> Cortar + hablar, sin desbloquear antes</button>
   <button id="b4"><b>4.</b> Sonido de prueba (pitido, no voz)</button>
+  <button id="b5"><b>5.</b> Modo "reproducción" (audioSession) + voz</button>
+  <button id="b6"><b>6.</b> Audio silencioso en bucle + voz</button>
   <pre id="log"></pre>
   <script>
     const log = (m) => { document.getElementById('log').textContent += m + '\n'; };
@@ -33,6 +35,7 @@
       return `voces=${v.length} es=${es.length} [${es.slice(0, 5).map((x) => x.name + ' ' + x.lang).join(', ')}]`;
     }
     log('al cargar: ' + voces());
+    log('audioSession: ' + (navigator.audioSession ? navigator.audioSession.type : 'no existe'));
     s?.addEventListener?.('voiceschanged', () => log('voiceschanged: ' + voces()));
     function frase(texto, n) {
       const u = new SpeechSynthesisUtterance(texto);
@@ -68,6 +71,28 @@
         o.stop(ctx.currentTime + 0.4);
         log('[4] audio state=' + ctx.state);
       } catch (e) { log('[4] error ' + e); }
+    };
+    document.getElementById('b5').onclick = () => {
+      log('--- prueba 5');
+      try { navigator.audioSession.type = 'playback'; log('[5] audioSession=' + navigator.audioSession.type); } catch (e) { log('[5] audioSession error ' + e); }
+      s.speak(frase('Prueba cinco. Zona 4, 20 segundos', 5));
+    };
+    function wavSilencio(segundos) {
+      const rate = 8000, n = rate * segundos, buf = new ArrayBuffer(44 + n), v = new DataView(buf);
+      const str = (o, t) => [...t].forEach((c, i) => v.setUint8(o + i, c.charCodeAt(0)));
+      str(0, 'RIFF'); v.setUint32(4, 36 + n, true); str(8, 'WAVEfmt '); v.setUint32(16, 16, true); v.setUint16(20, 1, true);
+      v.setUint16(22, 1, true); v.setUint32(24, rate, true); v.setUint32(28, rate, true); v.setUint16(32, 1, true); v.setUint16(34, 8, true);
+      str(36, 'data'); v.setUint32(40, n, true); for (let i = 0; i < n; i++) v.setUint8(44 + i, 128);
+      return URL.createObjectURL(new Blob([buf], { type: 'audio/wav' }));
+    }
+    document.getElementById('b6').onclick = () => {
+      log('--- prueba 6');
+      const a = new Audio(wavSilencio(1));
+      a.loop = true;
+      a.play().then(() => {
+        log('[6] audio reproduciendo');
+        s.speak(frase('Prueba seis. Zona 4, 20 segundos', 6));
+      }).catch((e) => log('[6] audio error ' + e));
     };
   </script>
 </body>
