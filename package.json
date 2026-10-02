@@ -1,0 +1,9 @@
+{
+  "name": "cardio-timer",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "node --test",
+    "serve": "node tools/servir.mjs"
+  }
+}
