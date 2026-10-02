@@ -14,7 +14,7 @@ PWA personal para iPhone 17 Pro que hace de temporizador de intervalos para card
 - Lista de entrenos guardados (crear, editar, duplicar, borrar).
 - Editor con estructura fija: calentamiento opcional → [intervalos] × repeticiones = ronda → rondas con descanso entre ellas → enfriamiento opcional.
 - Ronda con 1 o más intervalos; cada intervalo tiene duración e intensidad.
-- Intensidad: Zona 1–5 o porcentaje (1–100 %).
+- Intensidad: Zona 1–5 o porcentaje (0–100 %).
 - Pantalla de ejecución: intensidad enorme, cuenta atrás grande, color de fondo por zona, progreso (ronda/rep), siguiente fase.
 - Controles: pausa/continuar, saltar fase, terminar, interruptor de voz.
 - Voz en español: anuncio de cada fase ("Zona 4, 20 segundos", "Descanso, 60 segundos") y cuenta atrás "3, 2, 1" al final de cada fase.
@@ -54,7 +54,7 @@ Cada módulo tiene una sola responsabilidad. `workout.js` y `timer.js` son lógi
 
 ```js
 // Intensidad
-{ tipo: "zona", valor: 1..5 } | { tipo: "pct", valor: 1..100 }
+{ tipo: "zona", valor: 1..5 } | { tipo: "pct", valor: 0..100 }
 
 // Entreno
 {
@@ -110,7 +110,7 @@ También: `duracionTotal(entreno)` y `validar(entreno)` → lista de errores (va
 
 ## Errores y validación
 
-- El editor no permite guardar si: nombre vacío, ningún intervalo, alguna duración ≤ 0, repeticiones o rondas < 1, descanso < 0, zona fuera de 1–5, porcentaje fuera de 1–100. Se muestran los errores junto al formulario.
+- El editor no permite guardar si: nombre vacío, ningún intervalo, alguna duración ≤ 0, repeticiones o rondas < 1, descanso < 0, zona fuera de 1–5, porcentaje fuera de 0–100. Se muestran los errores junto al formulario.
 - Importar: se valida el archivo (formato y cada entreno) antes de reemplazar nada; se pide confirmación; si es inválido se muestra el motivo y no se toca nada.
 - Si Wake Lock no está disponible, se muestra un aviso discreto ("La pantalla podría apagarse").
 - Si no hay voz en español disponible, se usa la voz por defecto.

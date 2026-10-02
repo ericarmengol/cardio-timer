@@ -3,7 +3,7 @@ const esEntero = (n, min, max = Infinity) => Number.isInteger(n) && n >= min && 
 function intensidadValida(it) {
   if (!it || typeof it !== 'object') return false;
   if (it.tipo === 'zona') return esEntero(it.valor, 1, 5);
-  if (it.tipo === 'pct') return esEntero(it.valor, 1, 100);
+  if (it.tipo === 'pct') return esEntero(it.valor, 0, 100);
   return false;
 }
 
@@ -43,7 +43,7 @@ export function validar(e) {
   } else {
     e.intervalos.forEach((iv, i) => {
       if (!esEntero(iv?.segundos, 1)) errores.push(`Intervalo ${i + 1}: la duración debe ser un número entero mayor que 0`);
-      else if (!intensidadValida(iv.intensidad)) errores.push(`Intervalo ${i + 1}: la intensidad debe ser zona 1–5 o 1–100 %`);
+      else if (!intensidadValida(iv.intensidad)) errores.push(`Intervalo ${i + 1}: la intensidad debe ser zona 1–5 o 0–100 %`);
     });
   }
   if (!esEntero(e.repeticiones, 1)) errores.push('Las repeticiones por ronda deben ser al menos 1');

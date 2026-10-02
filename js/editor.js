@@ -20,7 +20,7 @@ function campoIntensidad(it, attrs) {
     .map((n) => `<option value="z${n}" ${seleccion === `z${n}` ? 'selected' : ''}>Zona ${n}</option>`)
     .join('');
   const pct = it.tipo === 'pct'
-    ? `<input type="number" inputmode="numeric" min="1" max="100" ${attrs} data-parte="pct" value="${mostrarNumero(it.valor)}" aria-label="Porcentaje"><span>%</span>`
+    ? `<input type="number" inputmode="numeric" min="0" max="100" ${attrs} data-parte="pct" value="${mostrarNumero(it.valor)}" aria-label="Porcentaje"><span>%</span>`
     : '';
   return `<select ${attrs} data-parte="intensidad" aria-label="Intensidad">${opciones}<option value="pct" ${seleccion === 'pct' ? 'selected' : ''}>%</option></select>${pct}`;
 }

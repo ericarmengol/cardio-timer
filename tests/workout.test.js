@@ -75,7 +75,7 @@ test('validar detecta cada error', () => {
     { ...base(), intervalos: [{ segundos: 0, intensidad: z(3) }] },
     { ...base(), intervalos: [{ segundos: 1.5, intensidad: z(3) }] },
     { ...base(), intervalos: [{ segundos: 20, intensidad: z(6) }] },
-    { ...base(), intervalos: [{ segundos: 20, intensidad: { tipo: 'pct', valor: 0 } }] },
+    { ...base(), intervalos: [{ segundos: 20, intensidad: { tipo: 'pct', valor: -1 } }] },
     { ...base(), intervalos: [{ segundos: 20, intensidad: { tipo: 'pct', valor: 101 } }] },
     { ...base(), repeticiones: NaN },
     { ...base(), repeticiones: 0 },
@@ -90,4 +90,9 @@ test('validar detecta cada error', () => {
     assert.equal(errores.length, 1, `esperaba 1 error en ${JSON.stringify(caso)}, hubo ${JSON.stringify(errores)}`);
     assert.equal(typeof errores[0], 'string');
   }
+});
+
+test('0 % es una intensidad válida (recuperación total)', () => {
+  const e = { ...base(), intervalos: [{ segundos: 10, intensidad: { tipo: 'pct', valor: 100 } }, { segundos: 20, intensidad: { tipo: 'pct', valor: 0 } }] };
+  assert.deepEqual(validar(e), []);
 });
