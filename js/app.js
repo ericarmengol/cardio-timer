@@ -1,0 +1,150 @@
+import { entrenoNuevo, validar } from './workout.js';
+import { crearAlmacen, exportar, parsearImportacion } from './storage.js';
+import { crearVoz } from './voice.js';
+import { escaparHtml, formatoReloj, resumenEntreno } from './format.js';
+import { montarEditor } from './editor.js';
+import { montarEjecucion } from './ejecucion.js';
+
+const $ = (sel) => document.querySelector(sel);
+const almacen = crearAlmacen();
+let entrenos = almacen.cargarEntrenos();
+const voz = crearVoz({ activada: almacen.vozActivada() });
+const editor = montarEditor($('#form-editor'), $('#editor-total'));
+const ejecucion = montarEjecucion($('#pantalla-ejecucion'), {
+  voz,
+  onVozCambiada: (activada) => almacen.guardarVoz(activada),
+  onFin: ({ entreno, segundos, completado }) => {
+    $('#fin-titulo').textContent = completado ? '¡Hecho!' : 'Entreno terminado';
+    $('#fin-nombre').textContent = entreno.nombre;
+    $('#fin-tiempo').textContent = formatoReloj(segundos);
+    mostrar('final');
+  },
+});
+
+function mostrar(nombre) {
+  for (const p of document.querySelectorAll('.pantalla')) p.hidden = p.id !== `pantalla-${nombre}`;
+  window.scrollTo(0, 0);
+}
+
+function guardar() {
+  try {
+    almacen.guardarEntrenos(entrenos);
+    return true;
+  } catch {
+    alert('No se pudo guardar en este dispositivo.');
+    return false;
+  }
+}
+
+function renderLista() {
+  $('#lista-vacia').hidden = entrenos.length > 0;
+  $('#lista-entrenos').innerHTML = entrenos.map((e) => `
+    <li class="tarjeta" data-id="${escaparHtml(e.id)}">
+      <div class="tarjeta-info"><strong>${escaparHtml(e.nombre)}</strong><span>${escaparHtml(resumenEntreno(e))}</span></div>
+      <div class="tarjeta-acciones">
+        <button class="btn primario grande" data-accion="empezar">Empezar</button>
+        <button class="btn" data-accion="editar">Editar</button>
+        <button class="btn" data-accion="duplicar">Duplicar</button>
+        <button class="btn peligro" data-accion="borrar">Borrar</button>
+      </div>
+    </li>`).join('');
+}
+
+function abrirEditor(entreno, titulo) {
+  $('#editor-titulo').textContent = titulo;
+  $('#editor-errores').innerHTML = '';
+  editor.cargar(entreno);
+  mostrar('editor');
+}
+
+$('#lista-entrenos').addEventListener('click', (ev) => {
+  const btn = ev.target.closest('button[data-accion]');
+  if (!btn) return;
+  const e = entrenos.find((x) => x.id === btn.closest('li').dataset.id);
+  if (!e) return;
+  switch (btn.dataset.accion) {
+    case 'empezar':
+      mostrar('ejecucion');
+      ejecucion.empezar(e);
+      break;
+    case 'editar':
+      abrirEditor(e, 'Editar entreno');
+      break;
+    case 'duplicar':
+      entrenos.splice(entrenos.indexOf(e) + 1, 0, { ...structuredClone(e), id: crypto.randomUUID(), nombre: `${e.nombre} (copia)` });
+      guardar();
+      renderLista();
+      break;
+    case 'borrar':
+      if (confirm(`¿Borrar "${e.nombre}"?`)) {
+        entrenos = entrenos.filter((x) => x !== e);
+        guardar();
+        renderLista();
+      }
+      break;
+  }
+});
+
+$('#btn-nuevo').addEventListener('click', () => abrirEditor(entrenoNuevo(crypto.randomUUID()), 'Nuevo entreno'));
+$('#btn-editor-cancelar').addEventListener('click', () => mostrar('lista'));
+$('#btn-fin-volver').addEventListener('click', () => mostrar('lista'));
+
+$('#btn-editor-guardar').addEventListener('click', () => {
+  const e = editor.obtener();
+  e.nombre = e.nombre.trim();
+  const errores = validar(e);
+  if (errores.length) {
+    $('#editor-errores').innerHTML = errores.map((t) => `<li>${escaparHtml(t)}</li>`).join('');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    return;
+  }
+  const i = entrenos.findIndex((x) => x.id === e.id);
+  if (i >= 0) entrenos[i] = e;
+  else entrenos.push(e);
+  if (guardar()) {
+    renderLista();
+    mostrar('lista');
+  }
+});
+
+$('#btn-exportar').addEventListener('click', async () => {
+  if (!entrenos.length) {
+    alert('No hay entrenos que exportar.');
+    return;
+  }
+  const nombre = `cardio-timer-${new Date().toISOString().slice(0, 10)}.json`;
+  const archivo = new File([exportar(entrenos)], nombre, { type: 'application/json' });
+  if (navigator.canShare?.({ files: [archivo] })) {
+    try {
+      await navigator.share({ files: [archivo] });
+    } catch (err) {
+      if (err.name !== 'AbortError') alert('No se pudo exportar.');
+    }
+    return;
+  }
+  const url = URL.createObjectURL(archivo);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = nombre;
+  a.click();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+});
+
+$('#btn-importar').addEventListener('click', () => $('#input-importar').click());
+
+$('#input-importar').addEventListener('change', async (ev) => {
+  const archivo = ev.target.files[0];
+  ev.target.value = '';
+  if (!archivo) return;
+  const r = parsearImportacion(await archivo.text());
+  if (!r.ok) {
+    alert(`No se pudo importar: ${r.error}`);
+    return;
+  }
+  if (!confirm(`Se reemplazarán tus ${entrenos.length} entrenos por los ${r.entrenos.length} del archivo. ¿Continuar?`)) return;
+  entrenos = r.entrenos;
+  if (guardar()) renderLista();
+});
+
+renderLista();
+mostrar('lista');

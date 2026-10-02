@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#111418">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Cardio">
+  <link rel="manifest" href="manifest.json">
+  <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+  <link rel="icon" href="icons/icon-192.png">
+  <link rel="stylesheet" href="styles.css">
+  <title>Cardio Timer</title>
+  <script type="module" src="js/app.js"></script>
+</head>
+<body>
+  <section id="pantalla-lista" class="pantalla">
+    <header class="barra"><h1>Mis entrenos</h1></header>
+    <ul id="lista-entrenos" class="lista"></ul>
+    <p id="lista-vacia" class="vacio" hidden>Aún no tienes entrenos. Crea el primero.</p>
+    <div class="acciones-lista">
+      <button id="btn-nuevo" class="btn primario grande">+ Nuevo entreno</button>
+      <div class="fila">
+        <button id="btn-exportar" class="btn">Exportar</button>
+        <button id="btn-importar" class="btn">Importar</button>
+      </div>
+      <input id="input-importar" type="file" accept="application/json,.json" hidden>
+    </div>
+  </section>
+
+  <section id="pantalla-editor" class="pantalla" hidden>
+    <header class="barra">
+      <button id="btn-editor-cancelar" class="btn texto">Cancelar</button>
+      <h1 id="editor-titulo">Nuevo entreno</h1>
+      <button id="btn-editor-guardar" class="btn texto fuerte">Guardar</button>
+    </header>
+    <ul id="editor-errores" class="errores"></ul>
+    <form id="form-editor" class="form" novalidate></form>
+    <p id="editor-total" class="total"></p>
+  </section>
+
+  <section id="pantalla-ejecucion" class="pantalla ejecucion" hidden>
+    <div class="ej-arriba">
+      <span id="ej-progreso"></span>
+      <button id="ej-voz" class="btn redondo" aria-label="Silenciar voz">🔊</button>
+    </div>
+    <p id="ej-aviso" class="aviso" hidden>La pantalla podría apagarse</p>
+    <div class="ej-centro">
+      <div id="ej-intensidad" class="ej-intensidad"></div>
+      <div id="ej-tiempo" class="ej-tiempo">0:00</div>
+      <div id="ej-siguiente" class="ej-siguiente"></div>
+    </div>
+    <div class="ej-controles">
+      <button id="ej-terminar" class="btn grande">Terminar</button>
+      <button id="ej-saltar" class="btn grande">Saltar</button>
+      <button id="ej-pausa" class="btn grande primario">Pausa</button>
+    </div>
+  </section>
+
+  <section id="pantalla-final" class="pantalla final" hidden>
+    <h1 id="fin-titulo">¡Hecho!</h1>
+    <p id="fin-nombre"></p>
+    <p id="fin-tiempo" class="fin-tiempo"></p>
+    <button id="btn-fin-volver" class="btn primario grande">Volver a mis entrenos</button>
+  </section>
+</body>
+</html>
