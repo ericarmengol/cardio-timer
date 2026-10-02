@@ -107,3 +107,32 @@ test('sin Web Audio no falla', async () => {
   voz.callar();
   voz.reactivar();
 });
+
+test('estado informa del contexto y de los clips cargados y fallidos', async () => {
+  const { ctx, voz } = crear();
+  assert.deepEqual(voz.estado(), { contexto: 'sin crear', cargados: 0, fallidos: [] });
+  ctx.state = 'running';
+  voz.desbloquear();
+  await voz.decir(['n1', 'roto']);
+  const e = voz.estado();
+  assert.equal(e.contexto, 'running');
+  assert.ok(e.cargados > 100);
+  assert.deepEqual(e.fallidos, ['roto']);
+});
+
+test('pitido suena aunque la voz esté desactivada', () => {
+  const { ctx, voz } = crear({ activada: false });
+  const osciladores = [];
+  ctx.createOscillator = () => {
+    const o = { frequency: { value: 0 }, connect() {}, start(at) { o.inicio = at; }, stop(at) { o.fin = at; } };
+    osciladores.push(o);
+    return o;
+  };
+  voz.pitido();
+  assert.equal(osciladores.length, 0);
+  voz.desbloquear();
+  voz.pitido();
+  assert.equal(osciladores.length, 1);
+  assert.equal(osciladores[0].frequency.value, 880);
+  assert.ok(osciladores[0].fin > osciladores[0].inicio);
+});

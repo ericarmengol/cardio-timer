@@ -1,4 +1,4 @@
-const VERSION = 'v2';
+const VERSION = 'v3';
 const CACHE = `cardio-timer-${VERSION}`;
 const ARCHIVOS = [
   './',
@@ -11,6 +11,7 @@ const ARCHIVOS = [
   './js/format.js',
   './js/frases.js',
   './js/storage.js',
+  './js/version.js',
   './js/timer.js',
   './js/voice.js',
   './js/workout.js',

@@ -17,7 +17,19 @@
 </head>
 <body>
   <section id="pantalla-lista" class="pantalla">
-    <header class="barra"><h1>Mis entrenos</h1></header>
+    <header class="barra">
+      <h1>Mis entrenos</h1>
+      <button id="btn-version" class="version" aria-label="Versión y prueba de sonido"></button>
+    </header>
+    <div id="panel-sonido" class="panel-sonido" hidden>
+      <p class="panel-titulo">Prueba de sonido</p>
+      <div class="fila">
+        <button id="btn-probar-voz" class="btn">Probar voz</button>
+        <button id="btn-probar-pitido" class="btn">Pitido</button>
+      </div>
+      <button id="btn-modo-reproduccion" class="btn">Activar modo reproducción</button>
+      <pre id="panel-log" class="panel-log"></pre>
+    </div>
     <div id="aviso-sesion" class="aviso-sesion" hidden>
       <p>Tienes un entreno a medias: <strong id="sesion-nombre"></strong></p>
       <div class="fila">

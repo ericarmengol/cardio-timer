@@ -20,9 +20,13 @@ export function crearVoz({ crearContexto = nuevoContexto, cargar = cargarClip, a
   let turno = 0;
   let fuentes = [];
   const buffers = new Map();
+  let cargados = 0;
+  const fallidos = [];
 
   function buffer(id) {
-    if (!buffers.has(id)) buffers.set(id, cargar(ctx, id).catch(() => null));
+    if (!buffers.has(id)) {
+      buffers.set(id, cargar(ctx, id).then((b) => { cargados++; return b; }, () => { fallidos.push(id); return null; }));
+    }
     return buffers.get(id);
   }
 
@@ -74,6 +78,18 @@ export function crearVoz({ crearContexto = nuevoContexto, cargar = cargarClip, a
       }
     },
     callar,
+    pitido() {
+      if (!ctx) return;
+      const o = ctx.createOscillator();
+      o.frequency.value = 880;
+      o.connect(ctx.destination);
+      const t = ctx.currentTime;
+      o.start(t);
+      o.stop(t + 0.3);
+    },
+    estado() {
+      return { contexto: ctx ? (ctx.state ?? 'desconocido') : 'sin crear', cargados, fallidos: [...fallidos] };
+    },
     reactivar() {
       ctx?.resume?.();
     },

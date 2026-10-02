@@ -5,6 +5,8 @@ import { crearVoz } from './voice.js';
 import { escaparHtml, formatoReloj, resumenEntreno } from './format.js';
 import { montarEditor } from './editor.js';
 import { montarEjecucion } from './ejecucion.js';
+import { PAUSA } from './frases.js';
+import { VERSION } from './version.js';
 
 const $ = (sel) => document.querySelector(sel);
 const almacen = crearAlmacen();
@@ -175,6 +177,48 @@ $('#btn-sesion-seguir').addEventListener('click', () => {
 $('#btn-sesion-descartar').addEventListener('click', () => {
   almacen.borrarSesion();
   $('#aviso-sesion').hidden = true;
+});
+
+$('#btn-version').textContent = VERSION;
+
+function anotarSonido(texto) {
+  $('#panel-log').textContent += `${texto}
+`;
+}
+
+function estadoSonido() {
+  const e = voz.estado();
+  const fallidos = e.fallidos.length ? ` (${e.fallidos.slice(0, 5).join(', ')})` : '';
+  anotarSonido(`audio: ${e.contexto} · clips: ${e.cargados} · fallidos: ${e.fallidos.length}${fallidos} · sesión: ${navigator.audioSession?.type ?? 'no disponible'} · voz: ${voz.activada ? 'activada' : 'desactivada'}`);
+}
+
+$('#btn-version').addEventListener('click', () => {
+  const panel = $('#panel-sonido');
+  panel.hidden = !panel.hidden;
+  $('#panel-log').textContent = '';
+  if (!panel.hidden) estadoSonido();
+});
+
+$('#btn-probar-voz').addEventListener('click', () => {
+  voz.desbloquear();
+  if (!voz.activada) anotarSonido('La voz está desactivada: actívala con 🔊 durante un entreno.');
+  voz.decir(['zona', 'n4', PAUSA, 'n20', 'segundos']);
+  setTimeout(estadoSonido, 2000);
+});
+
+$('#btn-probar-pitido').addEventListener('click', () => {
+  voz.desbloquear();
+  voz.pitido();
+  setTimeout(estadoSonido, 500);
+});
+
+$('#btn-modo-reproduccion').addEventListener('click', () => {
+  try {
+    navigator.audioSession.type = 'playback';
+    anotarSonido(`sesión → ${navigator.audioSession.type}`);
+  } catch (err) {
+    anotarSonido(`No se pudo cambiar la sesión: ${err.message}`);
+  }
 });
 
 renderLista();
