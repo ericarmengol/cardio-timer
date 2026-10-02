@@ -68,6 +68,9 @@ html, body {
 .tarjeta-acciones { display: flex; flex-wrap: wrap; gap: 8px; }
 .tarjeta-acciones .btn { flex: 1; }
 .tarjeta-acciones .primario { flex: 1 1 100%; }
+.aviso-sesion { background: var(--superficie); border: 1px solid var(--primario); border-radius: 16px; padding: 14px; display: flex; flex-direction: column; gap: 10px; }
+.aviso-sesion p { margin: 0; }
+.aviso-sesion .btn { flex: 1; }
 .vacio { color: var(--suave); text-align: center; margin: 32px 0; }
 .acciones-lista { margin-top: auto; display: flex; flex-direction: column; gap: 10px; }
 

@@ -18,6 +18,13 @@
 <body>
   <section id="pantalla-lista" class="pantalla">
     <header class="barra"><h1>Mis entrenos</h1></header>
+    <div id="aviso-sesion" class="aviso-sesion" hidden>
+      <p>Tienes un entreno a medias: <strong id="sesion-nombre"></strong></p>
+      <div class="fila">
+        <button id="btn-sesion-seguir" class="btn primario">Continuar</button>
+        <button id="btn-sesion-descartar" class="btn">Descartar</button>
+      </div>
+    </div>
     <ul id="lista-entrenos" class="lista"></ul>
     <p id="lista-vacia" class="vacio" hidden>Aún no tienes entrenos. Crea el primero.</p>
     <div class="acciones-lista">

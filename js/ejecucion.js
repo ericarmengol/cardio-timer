@@ -2,7 +2,7 @@ import { duracionTotal, generarFases } from './workout.js';
 import { Temporizador } from './timer.js';
 import { claseColor, formatoReloj, fraseFase, textoPrincipal, textoProgreso, textoSiguiente } from './format.js';
 
-export function montarEjecucion(raiz, { voz, onVozCambiada, onFin }) {
+export function montarEjecucion(raiz, { voz, onVozCambiada, onFin, sesion }) {
   const $ = (sel) => raiz.querySelector(sel);
   const el = {
     intensidad: $('#ej-intensidad'),
@@ -48,11 +48,22 @@ export function montarEjecucion(raiz, { voz, onVozCambiada, onFin }) {
     el.tiempo.textContent = formatoReloj(segundos);
   }
 
+  function guardarSesion() {
+    if (temporizador && !temporizador.terminado) sesion.guardar({ entrenoId: entreno.id, ...temporizador.instantanea() });
+  }
+
+  function pintarPausa() {
+    const pausado = Boolean(temporizador?.pausado);
+    el.pausa.textContent = pausado ? 'Continuar' : 'Pausa';
+    raiz.classList.toggle('pausado', pausado);
+  }
+
   function acabar(completado) {
     const segundos = completado ? duracionTotal(entreno) : Math.floor(temporizador.transcurrido() / 1000);
     temporizador.terminar();
     temporizador = null;
     soltarPantalla();
+    sesion.borrar();
     onFin({ entreno, segundos, completado });
   }
 
@@ -60,17 +71,18 @@ export function montarEjecucion(raiz, { voz, onVozCambiada, onFin }) {
     if (!temporizador) return;
     if (temporizador.pausado) {
       temporizador.continuar();
-      el.pausa.textContent = 'Pausa';
-      raiz.classList.remove('pausado');
     } else {
       temporizador.pausar();
       voz.callar();
-      el.pausa.textContent = 'Continuar';
-      raiz.classList.add('pausado');
     }
+    pintarPausa();
+    guardarSesion();
   });
 
-  el.saltar.addEventListener('click', () => temporizador?.saltar());
+  el.saltar.addEventListener('click', () => {
+    temporizador?.saltar();
+    guardarSesion();
+  });
 
   el.terminar.addEventListener('click', () => {
     if (temporizador && confirm('¿Terminar el entreno?')) {
@@ -93,12 +105,10 @@ export function montarEjecucion(raiz, { voz, onVozCambiada, onFin }) {
   });
 
   return {
-    empezar(e) {
+    empezar(e, foto = null) {
       voz.desbloquear();
       entreno = e;
       fases = generarFases(e);
-      el.pausa.textContent = 'Pausa';
-      raiz.classList.remove('pausado');
       pintarVoz();
       mantenerPantalla();
       temporizador = new Temporizador(fases, {
@@ -115,7 +125,10 @@ export function montarEjecucion(raiz, { voz, onVozCambiada, onFin }) {
           acabar(true);
         },
       });
-      temporizador.iniciar();
+      if (foto) temporizador.reanudar(foto);
+      else temporizador.iniciar();
+      pintarPausa();
+      guardarSesion();
     },
   };
 }

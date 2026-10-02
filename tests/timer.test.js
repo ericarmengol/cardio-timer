@@ -120,3 +120,39 @@ test('terminar detiene sin emitir fin', () => {
   assert.deepEqual(eventos, [['fase', 0, 10], ['cancelado']]);
   assert.equal(tm.terminado, true);
 });
+
+test('instantanea y reanudar recuperan el entreno tras cerrar la app', () => {
+  let t = 1_000_000;
+  const reloj = { ahora: () => t, programar: () => 1, cancelar: () => {} };
+  const a = new Temporizador([f(10), f(5), f(20)], reloj);
+  a.iniciar();
+  t += 3000;
+  a.saltar();
+  t += 2000;
+  a.pausar();
+  t += 50000;
+  const foto = JSON.parse(JSON.stringify(a.instantanea()));
+  const eventos = [];
+  const b = new Temporizador([f(10), f(5), f(20)], { ...reloj, onFase: (fase, i, seg) => eventos.push(['fase', i, seg]) });
+  b.reanudar(foto);
+  assert.equal(b.pausado, true);
+  assert.equal(b.transcurrido(), 12000);
+  assert.deepEqual(eventos, [['fase', 1, 3]]);
+  b.continuar();
+  t += 4000;
+  b.actualizar();
+  assert.deepEqual(eventos.at(-1), ['fase', 2, 19]);
+});
+
+test('reanudar un entreno ya acabado emite fin', () => {
+  let t = 0;
+  const eventos = [];
+  const reloj = { ahora: () => t, programar: () => 1, cancelar: () => {}, onFin: () => eventos.push('fin') };
+  const a = new Temporizador(FASES, reloj);
+  a.iniciar();
+  const foto = a.instantanea();
+  t += 999999;
+  const b = new Temporizador(FASES, reloj);
+  b.reanudar(foto);
+  assert.deepEqual(eventos, ['fin']);
+});

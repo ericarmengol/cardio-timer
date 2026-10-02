@@ -2,6 +2,11 @@ import { validar } from './workout.js';
 
 const CLAVE_ENTRENOS = 'cardio-timer:entrenos';
 const CLAVE_VOZ = 'cardio-timer:voz';
+const CLAVE_SESION = 'cardio-timer:sesion';
+
+const esNumero = (n) => typeof n === 'number' && Number.isFinite(n);
+const sesionValida = (s) => Boolean(s) && typeof s.entrenoId === 'string' && esNumero(s.inicio)
+  && esNumero(s.msPausado) && (s.pausadoEn === null || esNumero(s.pausadoEn));
 
 const entrenoValido = (e) => validar(e).length === 0 && typeof e.id === 'string' && e.id !== '';
 
@@ -23,6 +28,28 @@ export function crearAlmacen(storage = globalThis.localStorage) {
         return storage.getItem(CLAVE_VOZ) !== 'false';
       } catch {
         return true;
+      }
+    },
+    cargarSesion() {
+      try {
+        const sesion = JSON.parse(storage.getItem(CLAVE_SESION) ?? 'null');
+        return sesionValida(sesion) ? sesion : null;
+      } catch {
+        return null;
+      }
+    },
+    guardarSesion(sesion) {
+      try {
+        storage.setItem(CLAVE_SESION, JSON.stringify(sesion));
+      } catch {
+        // sin sesión guardada solo se pierde poder reanudar
+      }
+    },
+    borrarSesion() {
+      try {
+        storage.removeItem(CLAVE_SESION);
+      } catch {
+        // nada que hacer
       }
     },
     guardarVoz(activada) {

@@ -43,6 +43,16 @@ export class Temporizador {
     this.actualizar();
   }
 
+  instantanea() {
+    return { inicio: this.inicio, msPausado: this.msPausado, pausadoEn: this.pausadoEn };
+  }
+
+  reanudar({ inicio, msPausado, pausadoEn }) {
+    Object.assign(this, { inicio, msPausado, pausadoEn });
+    this.idTick = this.programar(() => this.actualizar(), 250);
+    this.actualizar();
+  }
+
   transcurrido() {
     const referencia = this.pausadoEn ?? this.ahora();
     return referencia - this.inicio - this.msPausado;

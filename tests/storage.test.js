@@ -4,7 +4,7 @@ import { crearAlmacen, exportar, parsearImportacion } from '../js/storage.js';
 
 function memoria() {
   const m = new Map();
-  return { getItem: (k) => (m.has(k) ? m.get(k) : null), setItem: (k, v) => m.set(k, String(v)), m };
+  return { getItem: (k) => (m.has(k) ? m.get(k) : null), setItem: (k, v) => m.set(k, String(v)), removeItem: (k) => m.delete(k), m };
 }
 
 const entreno = (id, nombre = 'E') => ({
@@ -70,4 +70,23 @@ test('importación rechaza archivos incorrectos', () => {
     assert.equal(typeof r.error, 'string');
     assert.ok(r.error.length > 0);
   }
+});
+
+test('guarda, carga y borra la sesión en curso', () => {
+  const s = memoria();
+  const a = crearAlmacen(s);
+  assert.equal(a.cargarSesion(), null);
+  const sesion = { entrenoId: 'a', inicio: 1000, msPausado: 0, pausadoEn: null };
+  a.guardarSesion(sesion);
+  assert.deepEqual(crearAlmacen(s).cargarSesion(), sesion);
+  a.borrarSesion();
+  assert.equal(a.cargarSesion(), null);
+});
+
+test('sesión corrupta se ignora', () => {
+  const s = memoria();
+  s.setItem('cardio-timer:sesion', '{roto');
+  assert.equal(crearAlmacen(s).cargarSesion(), null);
+  s.setItem('cardio-timer:sesion', JSON.stringify({ entrenoId: 'a', inicio: 'x', msPausado: 0, pausadoEn: null }));
+  assert.equal(crearAlmacen(s).cargarSesion(), null);
 });

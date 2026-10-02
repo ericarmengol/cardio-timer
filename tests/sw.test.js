@@ -31,3 +31,7 @@ test('el manifest apunta a iconos existentes', () => {
   assert.equal(manifest.start_url, './');
   for (const icono of manifest.icons) assert.ok(existsSync(new URL(`../${icono.src}`, import.meta.url)), icono.src);
 });
+
+test('la instalación descarga los archivos saltándose la caché HTTP', () => {
+  assert.match(leer('sw.js'), /addAll\(ARCHIVOS\.map\(\(u\) => new Request\(u, \{ cache: 'reload' \}\)\)\)/);
+});

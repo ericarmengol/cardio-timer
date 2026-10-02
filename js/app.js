@@ -1,4 +1,5 @@
-import { entrenoNuevo, validar } from './workout.js';
+import { entrenoNuevo, generarFases, validar } from './workout.js';
+import { posicionEn } from './timer.js';
 import { crearAlmacen, exportar, parsearImportacion } from './storage.js';
 import { crearVoz } from './voice.js';
 import { escaparHtml, formatoReloj, resumenEntreno } from './format.js';
@@ -13,6 +14,7 @@ const editor = montarEditor($('#form-editor'), $('#editor-total'));
 const ejecucion = montarEjecucion($('#pantalla-ejecucion'), {
   voz,
   onVozCambiada: (activada) => almacen.guardarVoz(activada),
+  sesion: { guardar: (s) => almacen.guardarSesion(s), borrar: () => almacen.borrarSesion() },
   onFin: ({ entreno, segundos, completado }) => {
     $('#fin-titulo').textContent = completado ? '¡Hecho!' : 'Entreno terminado';
     $('#fin-nombre').textContent = entreno.nombre;
@@ -23,6 +25,7 @@ const ejecucion = montarEjecucion($('#pantalla-ejecucion'), {
 
 function mostrar(nombre) {
   for (const p of document.querySelectorAll('.pantalla')) p.hidden = p.id !== `pantalla-${nombre}`;
+  if (nombre === 'lista') renderSesion();
   window.scrollTo(0, 0);
 }
 
@@ -144,6 +147,34 @@ $('#input-importar').addEventListener('change', async (ev) => {
   if (!confirm(`Se reemplazarán tus ${entrenos.length} entrenos por los ${r.entrenos.length} del archivo. ¿Continuar?`)) return;
   entrenos = r.entrenos;
   if (guardar()) renderLista();
+});
+
+function sesionPendiente() {
+  const sesion = almacen.cargarSesion();
+  const entreno = sesion && entrenos.find((e) => e.id === sesion.entrenoId);
+  if (!entreno) return null;
+  const ms = (sesion.pausadoEn ?? Date.now()) - sesion.inicio - sesion.msPausado;
+  return posicionEn(generarFases(entreno), ms).terminado ? null : { sesion, entreno };
+}
+
+function renderSesion() {
+  const pendiente = sesionPendiente();
+  if (!pendiente) almacen.borrarSesion();
+  $('#aviso-sesion').hidden = !pendiente;
+  if (pendiente) $('#sesion-nombre').textContent = pendiente.entreno.nombre;
+}
+
+$('#btn-sesion-seguir').addEventListener('click', () => {
+  const pendiente = sesionPendiente();
+  $('#aviso-sesion').hidden = true;
+  if (!pendiente) return;
+  mostrar('ejecucion');
+  ejecucion.empezar(pendiente.entreno, pendiente.sesion);
+});
+
+$('#btn-sesion-descartar').addEventListener('click', () => {
+  almacen.borrarSesion();
+  $('#aviso-sesion').hidden = true;
 });
 
 renderLista();
