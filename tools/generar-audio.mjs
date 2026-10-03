@@ -30,8 +30,10 @@ $s.SetOutputToNull()
 execFileSync('pwsh', ['-NoProfile', '-File', join(temporal, 'sintetizar.ps1')], { stdio: 'inherit' });
 
 const recorte = 'silenceremove=start_periods=1:start_threshold=-60dB,areverse,silenceremove=start_periods=1:start_threshold=-60dB,areverse,adelay=25,apad=pad_dur=0.04';
+// Volumen alto y comprimido para oírse por encima de la música (~-12 LUFS, pico -1 dB).
+const realce = 'highpass=f=100,acompressor=threshold=-30dB:ratio=6:attack=3:release=80:makeup=2,volume=16dB,alimiter=limit=0.89:level=disabled';
 for (const id of Object.keys(CLIPS)) {
-  execFileSync('ffmpeg', ['-y', '-loglevel', 'error', '-i', join(temporal, `${id}.wav`), '-af', recorte, '-ac', '1', '-ar', '24000', '-b:a', '48k', join(destino, `${id}.mp3`)]);
+  execFileSync('ffmpeg', ['-y', '-loglevel', 'error', '-i', join(temporal, `${id}.wav`), '-af', `${recorte},${realce}`, '-ac', '1', '-ar', '24000', '-b:a', '48k', join(destino, `${id}.mp3`)]);
 }
 rmSync(temporal, { recursive: true, force: true });
 

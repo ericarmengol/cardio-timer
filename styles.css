@@ -71,6 +71,7 @@ html, body {
 .version { appearance: none; background: none; border: none; color: var(--suave); font: inherit; font-size: .8rem; padding: 8px 0 8px 8px; cursor: pointer; }
 .panel-sonido { background: var(--superficie); border: 1px solid var(--borde); border-radius: 16px; padding: 14px; display: flex; flex-direction: column; gap: 10px; }
 .panel-sonido .fila .btn { flex: 1; }
+.modos-audio .btn { flex: 1; }
 .panel-titulo { margin: 0; font-weight: 600; }
 .panel-log { margin: 0; white-space: pre-wrap; word-break: break-word; font-size: .8rem; color: var(--suave); }
 .aviso-sesion { background: var(--superficie); border: 1px solid var(--primario); border-radius: 16px; padding: 14px; display: flex; flex-direction: column; gap: 10px; }
