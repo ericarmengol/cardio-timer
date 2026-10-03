@@ -136,3 +136,17 @@ test('pitido suena aunque la voz esté desactivada', () => {
   assert.equal(osciladores[0].frequency.value, 880);
   assert.ok(osciladores[0].fin > osciladores[0].inicio);
 });
+
+test('desbloquear pone la sesión de audio en modo reproducción (suena con el iPhone en silencio)', () => {
+  const sesionAudio = { type: 'auto' };
+  const { voz } = crear({ sesionAudio });
+  voz.desbloquear();
+  assert.equal(sesionAudio.type, 'playback');
+});
+
+test('sin sesión de audio desbloquear no falla', () => {
+  const { voz } = crear({ sesionAudio: undefined });
+  voz.desbloquear();
+  const { voz: otra } = crear({ sesionAudio: Object.freeze({ type: 'auto' }) });
+  otra.desbloquear();
+});

@@ -212,15 +212,6 @@ $('#btn-probar-pitido').addEventListener('click', () => {
   setTimeout(estadoSonido, 500);
 });
 
-$('#btn-modo-reproduccion').addEventListener('click', () => {
-  try {
-    navigator.audioSession.type = 'playback';
-    anotarSonido(`sesión → ${navigator.audioSession.type}`);
-  } catch (err) {
-    anotarSonido(`No se pudo cambiar la sesión: ${err.message}`);
-  }
-});
-
 renderLista();
 mostrar('lista');
 
