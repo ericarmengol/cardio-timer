@@ -37,14 +37,14 @@ test('descarta entrenos guardados que no son válidos', () => {
   assert.deepEqual(crearAlmacen(s).cargarEntrenos(), [entreno('a')]);
 });
 
-test('voz activada por defecto y persistente', () => {
+test('voz desactivada por defecto y persistente', () => {
   const s = memoria();
   const a = crearAlmacen(s);
-  assert.equal(a.vozActivada(), true);
-  a.guardarVoz(false);
-  assert.equal(crearAlmacen(s).vozActivada(), false);
+  assert.equal(a.vozActivada(), false);
   a.guardarVoz(true);
   assert.equal(crearAlmacen(s).vozActivada(), true);
+  a.guardarVoz(false);
+  assert.equal(crearAlmacen(s).vozActivada(), false);
 });
 
 test('exportar e importar ida y vuelta', () => {

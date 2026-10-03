@@ -25,9 +25,9 @@ export function crearAlmacen(storage = globalThis.localStorage) {
     },
     vozActivada() {
       try {
-        return storage.getItem(CLAVE_VOZ) !== 'false';
+        return storage.getItem(CLAVE_VOZ) === 'true';
       } catch {
-        return true;
+        return false;
       }
     },
     cargarSesion() {

@@ -201,7 +201,7 @@ $('#btn-version').addEventListener('click', () => {
 
 $('#btn-probar-voz').addEventListener('click', () => {
   voz.desbloquear();
-  if (!voz.activada) anotarSonido('La voz está desactivada: actívala con 🔊 durante un entreno.');
+  if (!voz.activada) anotarSonido('La voz está desactivada: actívala con 🔇 durante un entreno.');
   voz.decir(['zona', 'n4', PAUSA, 'n20', 'segundos']);
   setTimeout(estadoSonido, 2000);
 });
@@ -211,6 +211,7 @@ document.querySelector('.modos-audio').addEventListener('click', (ev) => {
   if (!btn) return;
   voz.modoSesion = btn.dataset.modo;
   voz.desbloquear();
+  if (!voz.activada) anotarSonido('La voz está desactivada: actívala con 🔇 durante un entreno.');
   anotarSonido(`modo ${btn.dataset.modo} → sesión: ${navigator.audioSession?.type ?? 'no disponible'}`);
   voz.decir(['zona', 'n4', PAUSA, 'n20', 'segundos']);
 });
