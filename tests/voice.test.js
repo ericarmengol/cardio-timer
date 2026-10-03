@@ -150,3 +150,12 @@ test('sin sesión de audio desbloquear no falla', () => {
   const { voz: otra } = crear({ sesionAudio: Object.freeze({ type: 'auto' }) });
   otra.desbloquear();
 });
+
+test('el modo de sesión de audio se puede cambiar antes de desbloquear', () => {
+  const sesionAudio = { type: 'auto' };
+  const { voz } = crear({ sesionAudio });
+  assert.equal(voz.modoSesion, 'playback');
+  voz.modoSesion = 'transient';
+  voz.desbloquear();
+  assert.equal(sesionAudio.type, 'transient');
+});

@@ -206,6 +206,15 @@ $('#btn-probar-voz').addEventListener('click', () => {
   setTimeout(estadoSonido, 2000);
 });
 
+document.querySelector('.modos-audio').addEventListener('click', (ev) => {
+  const btn = ev.target.closest('button[data-modo]');
+  if (!btn) return;
+  voz.modoSesion = btn.dataset.modo;
+  voz.desbloquear();
+  anotarSonido(`modo ${btn.dataset.modo} → sesión: ${navigator.audioSession?.type ?? 'no disponible'}`);
+  voz.decir(['zona', 'n4', PAUSA, 'n20', 'segundos']);
+});
+
 $('#btn-probar-pitido').addEventListener('click', () => {
   voz.desbloquear();
   voz.pitido();

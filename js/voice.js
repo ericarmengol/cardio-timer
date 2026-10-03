@@ -21,7 +21,9 @@ export function crearVoz({
   sesionAudio = globalThis.navigator?.audioSession,
   activada = true,
   pausaSeg = 0.15,
+  modoSesion = 'playback',
 } = {}) {
+  let modo = modoSesion;
   let encendida = activada;
   let ctx = null;
   let turno = 0;
@@ -46,6 +48,8 @@ export function crearVoz({
   }
 
   return {
+    get modoSesion() { return modo; },
+    set modoSesion(valor) { modo = valor; },
     get activada() { return encendida; },
     set activada(valor) {
       encendida = valor;
@@ -53,7 +57,7 @@ export function crearVoz({
     },
     desbloquear() {
       try {
-        if (sesionAudio) sesionAudio.type = 'playback';
+        if (sesionAudio) sesionAudio.type = modo;
       } catch {
         // sin control de sesión: sonará según el modo silencio
       }
