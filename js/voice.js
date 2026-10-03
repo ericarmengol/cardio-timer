@@ -1,8 +1,8 @@
 import { CLIPS, PAUSA } from './frases.js';
 
-// La voz suena con clips pregrabados vía Web Audio: en iPhone la síntesis de voz
-// del sistema no se oye con el modo silencio. Web Audio sí, pero en la app instalada
-// solo si la sesión de audio está en modo 'playback'.
+// La voz suena con clips pregrabados vía Web Audio. Sesión 'ambient': se mezcla con la
+// música de otras apps pero no suena con el modo silencio (en iOS no hay modo que haga
+// las dos cosas: 'playback' suena en silencio pero para la música; probado en el iPhone).
 
 function nuevoContexto() {
   const Contexto = globalThis.AudioContext ?? globalThis.webkitAudioContext;
@@ -21,7 +21,7 @@ export function crearVoz({
   sesionAudio = globalThis.navigator?.audioSession,
   activada = true,
   pausaSeg = 0.15,
-  modoSesion = 'playback',
+  modoSesion = 'ambient',
 } = {}) {
   let modo = modoSesion;
   let encendida = activada;
